@@ -6,14 +6,13 @@ from dicewars.client.ai_driver import BattleCommand, EndTurnCommand, TransferCom
 from dicewars.ai.kb.xlogin99.max_n import DepthFirstSearch
 import numpy as np
 from matplotlib import pyplot as plt
-from dicewars.ai.kb.xlogin99.gameSerialize import *
-
+# from dicewars.ai.kb.xlogin99.gameSerialize import *
+#TODO: low priority, figure out why uncommenting the above line causes 'IndexError: list index out of range'
 class SuiAI:
     def __init__(self, player_name, board, players_order, max_transfers):
         self.player_name = player_name
         self.max_transfers = max_transfers
         self.players_order = players_order
-        self.write_to_file = False # Change this to True if you want to write gameStateVector to a file
 
     """ Improved STEi_ADT agent: 
     1. Firstly perform aggressive transfer (STEi_ADT).
@@ -21,13 +20,6 @@ class SuiAI:
     3. At last, perform defensive transfer (STEi_ADT).
     """
     def ai_turn(self, board, nb_moves_this_turn, nb_transfers_this_turn, nb_turns_this_game, time_left):
-        # Serialize the game and save the array to fileName.np
-        if self.write_to_file == True:
-            M, o, d = serialize_game_state(board)
-            serializedGame = game_state_to_vector(M, o, d)
-            save_game_state_vector_to_file(serializedGame)
-            self.write_to_file = False
-
         # Firstly perform 4 transfer moves into the border
         if nb_transfers_this_turn < self.max_transfers - 2:
             transfer = get_transfer_to_border(board, self.player_name)
