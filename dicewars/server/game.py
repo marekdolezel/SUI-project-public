@@ -64,8 +64,7 @@ class Game:
         self.create_socket()
 
         self.board = board
-        self.boardArrayToSerialize = []
-        self.winner = 0
+        self.boardAndPlayersToSerialize = []
         self.initialize_players()
 
         self.connect_clients()
@@ -84,6 +83,10 @@ class Game:
     def run(self):
         """Main loop of the game
         """
+        # Serialization strategy:
+        # 1. dump all game states (state of the 'board' object) after every move
+        # 2. process every game state offline
+        # NOTE: Indexes of the players do change between different matches, thus this is the only way
         try:
             for i in range(1, self.number_of_players + 1):
                 player = self.players[i]
@@ -97,21 +100,29 @@ class Game:
                     # Game is over, the winner is known, let's serialize the board state
 
                     # Serialize the winning board, vector owner should be full of number representing winner_name
-                    self.boardArrayToSerialize.append(serialize_game_state(self.board))
+                    self.boardAndPlayersToSerialize.append(self.board)
 
-                    now = datetime.now()
-                    fileName = now.strftime("%m%d_%Y_%H%M%S.pickle")
+                    # Compute dictionary of player_name[Int]: player_nickname
+                    players_dict = {}
+
+                    for p in self.players:
+                        player = self.players[p]
+                        players_dict[player.get_name()] = player.get_nickname()
 
                     # Dump the object with all gameStates
+                    now = datetime.now()
+                    fileName = now.strftime("%m%d_%Y_%H%M%S_arrayOfBoards.pickle")
+
                     if not os.path.exists("gameStates"):
                         os.mkdir("gameStates")
 
                     with open("gameStates/" + fileName, 'wb') as handle:
-                        pickle.dump(self.boardArrayToSerialize, handle)
+                        t = (players_dict, self.boardAndPlayersToSerialize )
+                        pickle.dump(t, handle)
 
                     break
 
-                self.boardArrayToSerialize.append(serialize_game_state(self.board))
+                self.boardAndPlayersToSerialize.append(self.board)
 
         except KeyboardInterrupt:
             self.logger.info("Game interrupted.")
@@ -429,7 +440,6 @@ class Game:
             player = self.players[p]
             if player.get_number_of_areas() == self.board.get_number_of_areas():
                 self.process_win(player.get_nickname(), player.get_name())
-                self.winner = player.get_name()
                 return True
 
         return False

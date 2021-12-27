@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 import sys
 import pickle
-
+from scripts.gameSerialize import *
 bSize = 34
 
 def reconstruct_Mod_from_vector(gameStateVector):
@@ -38,10 +38,12 @@ def helper_plot_matrix_M(M):
 
 if __name__ == '__main__':
     with open(sys.argv[1], "rb") as file:
-        matrixofVectors = pickle.load(file)
+        tuplePlayersArrOfBoard = pickle.load(file)
 
+    players, arrOfBoards = tuplePlayersArrOfBoard
 
-    for gameStateVector in matrixofVectors:
+    for board in arrOfBoards:
+        gameStateVector = serialize_game_state(board)
         M,o,d = reconstruct_Mod_from_vector(gameStateVector)
         # helper_plot_matrix_M(M)
 
