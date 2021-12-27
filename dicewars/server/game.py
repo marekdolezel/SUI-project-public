@@ -4,12 +4,12 @@ import logging
 import random
 import numpy as np
 import socket
-import sys
+import sys,os
 
 from .player import Player
 
 from .summary import GameSummary
-
+from scripts.gameSerialize import serialize_game_state, save_game_state_vector_to_file
 
 class Game:
     """Instance of the game
@@ -63,6 +63,8 @@ class Game:
         self.create_socket()
 
         self.board = board
+        self.to_serialize_board = self.board
+
         self.initialize_players()
 
         self.connect_clients()
@@ -90,6 +92,12 @@ class Game:
                 self.handle_player_turn()
                 if self.check_win_condition():
                     sys.stdout.write(str(self.summary))
+
+                    # Game is over, the winner is known, let's serialize the board state
+                    # os.mkdir("gameStates")
+                    gameStateVector = serialize_game_state(self.to_serialize_board)
+                    self.logger.debug("Gamestatevector{}".format(gameStateVector))
+                    save_game_state_vector_to_file(gameStateVector)
                     break
 
         except KeyboardInterrupt:

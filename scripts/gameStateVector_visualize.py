@@ -5,6 +5,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 import sys
 
+bSize = 34
+
 def reconstruct_Mod_from_vector(gameStateVector):
     M = np.zeros((bSize, bSize))
     o = np.zeros((bSize))
@@ -34,7 +36,6 @@ def helper_plot_matrix_M(M):
 
 
 if __name__ == '__main__':
-    bSize = 34
     gameStateVector = np.load(sys.argv[1])
     M,o,d = reconstruct_Mod_from_vector(gameStateVector)
     helper_plot_matrix_M(M)

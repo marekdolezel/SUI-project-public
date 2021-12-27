@@ -7,27 +7,33 @@ def helper_plot_matrix_M(M):
     plt.imshow(M, interpolation='nearest')
     plt.show()
 
-
 def serialize_game_state(board):
+    M,o,d = _serialize_game_state(board)
+    return _game_state_to_vector(M,o,d)
+
+def _serialize_game_state(board):
     bSize = 34
     adjacencyMatrix = np.zeros((bSize, bSize))
     ownerShipVector = np.zeros((bSize))
     diceVector = np.zeros((bSize))
 
+    board.get_board()
+
     for i in range(1, bSize + 1):
-        area = board.get_area(i)
-        area0BasedIndex = area.name - 1
+        area = board.get_area_by_name(i) # Areas are indexed from 1 to 34
+        areaIndex = area.name - 1
 
-        ownerShipVector[area0BasedIndex] = area.owner_name
-        diceVector[area0BasedIndex] = area.dice
+        ownerShipVector[areaIndex] = area.owner_name
+        diceVector[areaIndex] = area.dice
 
-        for neighbour1BasedIndex in area.neighbours:
-            neighbour0BasedIndex = neighbour1BasedIndex - 1
+        neighbours = area.get_adjacent_areas()
+        for neighbour_area in neighbours:
+            neighbourIndex = neighbour_area.name - 1
 
-            adjacencyMatrix[area0BasedIndex, neighbour0BasedIndex] = 1
+            adjacencyMatrix[areaIndex, neighbourIndex] = 1
     return adjacencyMatrix, ownerShipVector, diceVector
 
-def game_state_to_vector( M, o, d):
+def _game_state_to_vector( M, o, d):
     bSize = 34
     gameStateVectorSize = (bSize ** 2 - bSize) / 2 + bSize + 2 * bSize
     gameStateVector = np.zeros((int(gameStateVectorSize)))
