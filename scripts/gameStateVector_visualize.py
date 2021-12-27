@@ -4,6 +4,7 @@
 from matplotlib import pyplot as plt
 import numpy as np
 import sys
+import pickle
 
 bSize = 34
 
@@ -36,8 +37,15 @@ def helper_plot_matrix_M(M):
 
 
 if __name__ == '__main__':
-    gameStateVector = np.load(sys.argv[1])
-    M,o,d = reconstruct_Mod_from_vector(gameStateVector)
-    helper_plot_matrix_M(M)
+    with open(sys.argv[1], "rb") as file:
+        matrixofVectors = pickle.load(file)
 
-    print("Visualization done")
+
+    for gameStateVector in matrixofVectors:
+        M,o,d = reconstruct_Mod_from_vector(gameStateVector)
+        # helper_plot_matrix_M(M)
+
+        print("o",o)
+        print("d",d,"\n\n")
+
+        print("Visualization done")

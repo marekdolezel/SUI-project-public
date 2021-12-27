@@ -107,15 +107,18 @@ def main():
             nb_permutations, permutations_generator = rotational_permunations_generator(combatants)
             for i, permuted_combatants in enumerate(permutations_generator):
                 reporter.report('\r{} {}/{} {}'.format(boards_played, i+1, nb_permutations, ' vs. '.join(permuted_combatants)))
-                game_summary = run_ai_only_game(
-                    args.port, args.address, procs, permuted_combatants,
-                    board_definition,
-                    fixed=UNIVERSAL_SEED,
-                    client_seed=UNIVERSAL_SEED,
-                    logdir=args.logdir,
-                    debug=args.debug,
-                )
-                all_games.append(game_summary)
+                try:
+                    game_summary = run_ai_only_game(
+                        args.port, args.address, procs, permuted_combatants,
+                        board_definition,
+                        fixed=UNIVERSAL_SEED,
+                        client_seed=UNIVERSAL_SEED,
+                        logdir=args.logdir,
+                        debug=args.debug,
+                    )
+                    all_games.append(game_summary)
+                except:
+                    sys.stderr.write("Hm? IndexError\n")
     except (Exception, KeyboardInterrupt) as e:
         sys.stderr.write("Breaking the tournament because of {}\n".format(traceback.format_exc()))
         for p in procs:

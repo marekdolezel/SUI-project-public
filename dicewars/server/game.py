@@ -5,8 +5,9 @@ import random
 import numpy as np
 import socket
 import sys,os
-
+import pickle
 from .player import Player
+from datetime import datetime
 
 from .summary import GameSummary
 from scripts.gameSerialize import serialize_game_state, save_game_state_vector_to_file
@@ -63,8 +64,8 @@ class Game:
         self.create_socket()
 
         self.board = board
-        self.to_serialize_board = self.board
-
+        self.boardArrayToSerialize = []
+        self.winner = 0
         self.initialize_players()
 
         self.connect_clients()
@@ -94,11 +95,23 @@ class Game:
                     sys.stdout.write(str(self.summary))
 
                     # Game is over, the winner is known, let's serialize the board state
-                    # os.mkdir("gameStates")
-                    gameStateVector = serialize_game_state(self.to_serialize_board)
-                    self.logger.debug("Gamestatevector{}".format(gameStateVector))
-                    save_game_state_vector_to_file(gameStateVector)
+
+                    # Serialize the winning board, vector owner should be full of number representing winner_name
+                    self.boardArrayToSerialize.append(serialize_game_state(self.board))
+
+                    now = datetime.now()
+                    fileName = now.strftime("%m%d_%Y_%H%M%S.pickle")
+
+                    # Dump the object with all gameStates
+                    if not os.path.exists("gameStates"):
+                        os.mkdir("gameStates")
+
+                    with open("gameStates/" + fileName, 'wb') as handle:
+                        pickle.dump(self.boardArrayToSerialize, handle)
+
                     break
+
+                self.boardArrayToSerialize.append(serialize_game_state(self.board))
 
         except KeyboardInterrupt:
             self.logger.info("Game interrupted.")
@@ -416,6 +429,7 @@ class Game:
             player = self.players[p]
             if player.get_number_of_areas() == self.board.get_number_of_areas():
                 self.process_win(player.get_nickname(), player.get_name())
+                self.winner = player.get_name()
                 return True
 
         return False
