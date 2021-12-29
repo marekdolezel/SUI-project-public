@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import pickle
+from multiprocessing import Process, cpu_count
 import os,sys
 import numpy as np
 from scripts.gameSerialize import serialize_game_state, save_game_state_vector_to_file
@@ -32,12 +33,13 @@ def compute_winner(lastBoard):
             return -1
     return winner
 
-if __name__ == '__main__':
+def process_pickles(files_to_process, rootdir):
     globalPlayersDict = {}
     maxIndex = 0
     gameStateVectorsArray = np.zeros(664)
-    for file in os.listdir(sys.argv[1]):
-        with open(sys.argv[1]+"/"+file, "rb") as handle:
+    for file in files_to_process:
+        print("Processing file", {file})
+        with open(rootdir+"/"+file, "rb") as handle:
             tuplePlayersArrOfBoard = pickle.load(handle)
 
             players, arrOfBoards = tuplePlayersArrOfBoard
@@ -58,3 +60,26 @@ if __name__ == '__main__':
             gameStateVectorsArray = np.delete(gameStateVectorsArray, (0), axis=0)
     save_game_state_vector_to_file(gameStateVectorsArray)
 
+def split(a, n):
+    k, m = divmod(len(a), n)
+    return (a[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(n))
+
+
+if __name__ == '__main__':
+    # Post process files in parallel
+    ListOfFilenames = os.listdir(sys.argv[1])
+    ListOfProcesses = []
+    Processors = cpu_count()  # n of processors you want to use
+    print("detected ",cpu_count(), "processors")
+    # Divide the list of files in 'n of processors' Parts
+    Parts = split(ListOfFilenames, Processors)
+    if (sys.argv[2] == "single"): # if single is specified process files in sequential order
+        process_pickles(ListOfFilenames, sys.argv[1] )
+    else:
+        for part in list(Parts):
+            print("Starting process")
+            p = Process(target=process_pickles, args=(part, sys.argv[1]))
+            p.start()
+            ListOfProcesses.append(p)
+        for p in ListOfProcesses:
+            p.join()
