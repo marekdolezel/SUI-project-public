@@ -21,6 +21,8 @@ import process_pickle_to_np_array as pitonp
 # or the data can be rather passed by some other already complete script
 # then -> model will be called for evaluation of each state of MaxN 
 
+#Warning -> this needs gameStates file to be in scripts. After model is trained this script won't need to be launched TODO
+
 #Questions:
     # Do we have data of each state or only of initiate states ?
     # Do players always have the same numbers ? If not we need to asure it
