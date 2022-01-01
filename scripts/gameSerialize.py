@@ -17,8 +17,8 @@ def serialize_game_state(board, players, globalPlayersDict):
 
 def serialize_game_state_fast(board, players, globalPlayersDict):
     bSize = 34
-    gameStateVectorSize = (bSize ** 2 - bSize) / 2 + bSize + 2*bSize
-    gameStateVector = np.zeros((int(gameStateVectorSize)))
+    gameStateVectorSize = int((bSize ** 2 - bSize) / 2 + bSize + 2*bSize)
+    gameStateVector = [0] * gameStateVectorSize
 
     ownershipIndex = int((bSize ** 2 - bSize) / 2 + bSize)
     diceIndex = int((bSize ** 2 - bSize) / 2 + bSize + bSize)
