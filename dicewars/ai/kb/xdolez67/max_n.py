@@ -1,19 +1,21 @@
 import copy
 
 from dicewars.ai.utils import possible_attacks, probability_of_successful_attack, probability_of_holding_area
-from dicewars.client.ai_driver import BattleCommand, EndTurnCommand, TransferCommand
+from dicewars.client.ai_driver import BattleCommand
 
 #AI
 import torch
-from dicewars.ai.kb.xdolez67.network import NetworkSui
-from dicewars.ai.kb.xdolez67.gameSerialize import *
+from torch import nn
+#from dicewars.ai.kb.xdolez67.network import NetworkSui()
+# from dicewars.ai.kb.xdolez67.gameSerialize import serialize_game_stateNoTraslation
+import sys
 
 class DepthFirstSearch:
     def __init__(self, players_order):
         self.player_order = players_order
         self.max_move_depth = 1
-        # self.ai_model  = NetworkSui()
-        # self.ai_model.load_state_dict(torch.load("model.pth"))
+        self.ai_model = nn.Module
+        self.ai_model.load_state_dict(torch.load("model.pth"))
 
     def max_n(self, board, move_depth, player_depth, player):
         self.max_move_depth = move_depth
@@ -103,5 +105,5 @@ class DepthFirstSearch:
 
     def evaluate_ai(self, board):
         gameVector = serialize_game_stateNoTraslation(board)
-        value = self.model(gameVector)
+        value = model(gameVector)
         return value
