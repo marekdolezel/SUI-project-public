@@ -58,9 +58,11 @@ def _serialize_game_state(board, players, globalPlayersDict, translation):
         owner_name = area.owner_name
         areaIndex = area.name - 1
 
-        if translation == True:
+        if translation == True: # Translation should not be used!
             new_owner_name = globalPlayersDict[players[owner_name]]
             ownerShipVector[areaIndex] = new_owner_name
+        else:
+            ownerShipVector[areaIndex] = owner_name
         diceVector[areaIndex] = area.dice
 
         neighbours = area.get_adjacent_areas()
