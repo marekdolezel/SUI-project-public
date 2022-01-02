@@ -12,7 +12,7 @@ cp ./scripts/process_pickle_to_np_array.py $SUPP_DIR
 cp ./scripts/gameSerialize.py $SUPP_DIR
 cp ./scripts/network.py $SUPP_DIR
 cp ./scripts/extract_subset_fromH5.py $SUPP_DIR
-cp ./doc/dokumentace.pdf $SUPP_DIR/xdolez67.pdf
+cp ./doc/dokumentace.pdf $SUBMIT_DIR/xdolez67.pdf
 
 cd $SUBMIT_DIR
 zip -r $LEADER *

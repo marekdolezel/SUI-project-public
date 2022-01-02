@@ -5,15 +5,15 @@ from dicewars.client.ai_driver import BattleCommand, EndTurnCommand, TransferCom
 
 #AI
 import torch
-from scripts.network import NetworkSui()
-from scripts.gameSerialize import serialize_game_stateNoTraslation
+from dicewars.ai.kb.xdolez67.network import NetworkSui
+from dicewars.ai.kb.xdolez67.gameSerialize import *
 
 class DepthFirstSearch:
     def __init__(self, players_order):
         self.player_order = players_order
         self.max_move_depth = 1
-        self.ai_model  = NetworkSui()
-        self.ai_model.load_state_dict(torch.load("model.pth"))
+        # self.ai_model  = NetworkSui()
+        # self.ai_model.load_state_dict(torch.load("model.pth"))
 
     def max_n(self, board, move_depth, player_depth, player):
         self.max_move_depth = move_depth
@@ -25,7 +25,7 @@ class DepthFirstSearch:
     """
     def max_n_recursion(self, board, move_depth, player_depth, player):
         if player_depth == 0:
-            return self.evaluate_ai(board), []
+            return self.evaluate(board), []
 
         moves = self.possible_moves(board, player)
         if move_depth == 0 or len(moves) == 0:
