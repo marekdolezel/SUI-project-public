@@ -13,4 +13,6 @@ cp ./scripts/gameSerialize.py $SUPP_DIR
 cp ./scripts/network.py $SUPP_DIR
 cp ./scripts/extract_subset_fromH5.py $SUPP_DIR
 
-zip -r $LEADER $SUBMIT_DIR/*
+cd $SUBMIT_DIR
+zip -r $LEADER *
+cp  $LEADER.zip ../
