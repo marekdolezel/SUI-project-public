@@ -3,10 +3,10 @@ import logging
 from dicewars.ai.kb.move_selection import get_transfer_to_border, get_transfer_from_endangered
 from dicewars.ai.utils import possible_attacks, probability_of_successful_attack, probability_of_holding_area
 from dicewars.client.ai_driver import BattleCommand, EndTurnCommand, TransferCommand
-from dicewars.ai.kb.xlogin99.max_n import DepthFirstSearch
+from dicewars.ai.kb.xdolez67.max_n import DepthFirstSearch
 import numpy as np
 from matplotlib import pyplot as plt
-# from dicewars.ai.kb.xlogin99.gameSerialize import *
+# from dicewars.ai.kb.xdolez67.gameSerialize import *
 #TODO: low priority, figure out why uncommenting the above line causes 'IndexError: list index out of range'
 class SuiAI:
     def __init__(self, player_name, board, players_order, max_transfers):
