@@ -23,6 +23,7 @@
 \usepackage{colortbl}
 \usepackage[table,xcdraw]{xcolor}
 \usepackage{pifont}
+\usepackage{bm}
 %\date{}
 
 \lstset{
@@ -107,6 +108,35 @@ Voľba ťahu v každom kole, pričom v jednom kole má hráč viac ťahov, postu
 	\item AI vykoná prehľadávanie stavového priestoru pomocou \textit{Max-N} a zvolí útočný ťah s najlepším ohodnotením. Tento krok opakuje dokedy mu \textit{Max-N} poskytuje možné útoky. (STEI\_ADT v tejto fáze neprehľadáva stavový priestor ale používa heuristickú funkciu)
 	\item Na záver vykoná AI defenzívny presun. Zvyšné 2 ťahy na presun vlastných kociek využije tak aby svoje kocky presunula od hraníc (defenzíva podobná STEI\_ADT).
 \end{enumerate}
+
+\section{Umělá inteligence}
+
+Neuronová síť implementuje heuristickou funkci, která se poté využívá k ohodnocení listových uzlů v rámci procedury MaxN. Vstupem neuronové sítě je vektor reprezentující aktuální stav hry, výstupem je potom vektor čtyř reálných čísel z intervalu $\langle 0,1 \rangle$, které udává pravděpodobnost výhry daného hráče v aktuální situaci.
+
+%Neurónová sieť implementuje heuristickú funkciu, ktorá sa potom využíva na ohodnotenie listových uzlov v rámci procedúry MaxN. Vstupom neurónovej siete je vektor reprezentujúci aktuálny stav hry, výstupom je potom vektor štyroch reálnych čísel z intervalu $\langle 0,1 \rangle$, ktoré udáva pravdepodobnosť výhry daného hráča v aktuálnej situácii.
+
+\subsection{Serializace hry}
+Pro účely serializace byla upravena serverová část hry, a to konkrétně soubor \texttt{dicewars/server/game.py}. Tato drobná úprava umožňuje uložit všechny stavy her(pole objektů \texttt{board}), které nastávají v rámci jednoho turnaje do souboru \texttt{.pickle}.
+
+Samotná serializace a transformace do HDF\footnote{HDF - Hierarchical Data Format} souboru je implementována skriptem\\\texttt{process\_pickle\_to\_np\_array.py} a probíhá offline (tedy mimo běhové prostředí hry).
+
+Serializovaná hra je reprezentována vektorem čísel o délce $V$, kde celková délka vektoru se vypočte v závislosti na počtu políček následovně: $\frac{bSize}{2} \cdot (1+bSize) + 2 \cdot bSize + 1$. Tento vektor se skládá z celkem tří komponent: 
+\begin{itemize}
+	\item matice sousednosti $\bm{M}_{n}$ - určuje, zda políčko $i$ sousedí s políčkem $j$. Pokud \textit{$M_{i,j}$} je rovno 1, pak políčko $i$ sousedí s $j$. V případě, že \textit{$M_{i,j}$} je rovno nule, tak nikoliv. Protože je matice symetrická, ukládá se pouze horní trojúhelník (včetně diagonály). Velikost matice sousednosti je určena vztahem: $\frac{bSize}{2} \cdot (1+bSize)$.
+	\item vektor vlastnictví $\bm{\vec{o}}$ - reprezentuje informaci o vlastníkovi políčka, vlastník je reprezentován hodnotou z intervalu $\langle 1;4 \rangle$. Velikost vektoru $\bm{\vec{o}}$ je $bSize$.
+	\item vektor kostek $\bm{\vec{d}}$ - počet kostek na daném políčku (nabývá hodnot z intervalu $\langle 1;8 \rangle$).  Velikost vektoru $\bm{\vec{d}}$ je $bSize$.
+	\item vítěz v rámci současného turnaje - velikost $1$ políčko.
+\end{itemize}
+
+\subsection{Neuronová síť}
+
+
+Generování surových dat probíhalo pomocí následujícího příkazu \texttt{./scripts/dicewars-tournament.py -g 4 -n 1000 --ai-under-test kb.xdolez67} s upraveným serverem (viz předchozí sekce). Tato data byla následně zpracována pomocí skriptu \texttt{process\_pickle\_to\_np\_array.py}, který vytvoří soubor HD5 s numpy polem dimenze (N, 664), kde N je celkový počet stavů her a 664 je velikost jednoho vektoru.
+
+Tento soubor je dále zpracován tak, aby zastoupení výher všech hráču bylo uniformní a zároveň se sníží velikost v první dimenzi a provede se operace shuffle podle první dimenze. Toto zpracování provádí skript \texttt{extract\_subset\_fromH5.py}
+
+Takto zpracovaný soubor je poté vstupem pro skript \texttt{./scripts/network.py}, který data rozdělí na trénovací, testovací a validační a na těchto datech natrénuje neuronovou síť. Architektura neuronové sítě byla zvolena na základě výsledků experimentů.
+
 
 
 \section{Záver}
