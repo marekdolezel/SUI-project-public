@@ -37,7 +37,7 @@ def compute_winner(lastBoard):
             pass
         else:
             return -1
-        print("winner is ",winner)
+        # print("winner is ",winner)
         assert (type(winner) == int)
     return winner
 
@@ -49,6 +49,9 @@ def process_pickles(files_to_process, rootdir):
 
     processingFirstFile = True
     for file in files_to_process:
+        if file.split('.')[1] != 'pickle':
+            print("Skipping file (reason: invalid extention)", {file})
+            break
         print("Processing file", {file})
         gameStateVectorsArray = np.zeros(664)
         with open(rootdir+"/"+file, "rb") as handle:
@@ -59,7 +62,7 @@ def process_pickles(files_to_process, rootdir):
 
             winner = compute_winner(arrOfBoards[-1])
             if (winner == -1):
-                print("Skipping the file",{file})
+                print("Skipping the file (reason: winner is unknown)",{file})
                 break
             # "globalIndexes" were pretty bad idea afterall :-(
             # winner = globalPlayersDict[players[winner]] # Translate winner to globalIndex
@@ -94,7 +97,7 @@ def split(a, n):
     k, m = divmod(len(a), n)
     return (a[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(n))
 
-
+# Run as
 if __name__ == '__main__':
     # Post process files in parallel
     ListOfFilenames = os.listdir(sys.argv[1])
