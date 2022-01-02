@@ -48,12 +48,12 @@ class NetworkSui(nn.Module):
             nn.ReLU(),
             nn.Linear(512, 256),
             nn.ReLU(),
-            nn.Linear(256, 128),
-            nn.ReLU(),
-            nn.Linear(128, 64),
+            #nn.Linear(256, 128),
+            #nn.ReLU(),
+            nn.Linear(256, 64),
             nn.ReLU(),
             nn.Linear(64, 4),
-            nn.Softmax(dim=2)
+            nn.Softmax(dim=1)
         )
         
     def forward(self, x):
@@ -65,25 +65,23 @@ class NetworkSui(nn.Module):
     def train_model(model, dataloader, optimizer):
         model.train()
         size = len(dataloader.dataset)
+        print(size)
         
         for batch, (X, y) in enumerate(dataloader):
-            #print(X.size())
-            #print(y.size())
+            
             X, y = X.to(device), y.to(device)
             
             pred = model(X)
             loss = loss_fn(pred, y)
-            
-            print(pred)
-            print(y)
-            
+            #print(pred)
+            #print(y)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
             
-        if batch % 100 == 0:
-            loss, current = loss.item(), batch * len(X)
-            print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
+        #if batch % 100 == 0:
+        loss, current = loss.item(), batch * len(X)
+        print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
      
         
     def test(model, dataloader):
@@ -95,8 +93,10 @@ class NetworkSui(nn.Module):
             for X, y in dataloader:
                 X, y = X.to(device), y.to(device)
                 pred = model(X)
+
                 test_loss += loss_fn(pred, y).item()
-                correct += (pred.argmax(1) == y).type(torch.float).sum().item()
+
+                correct += (pred.argmax(0) == y).type(torch.float).sum().item()
         test_loss /= num_batches
         correct /= size
         print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
@@ -112,8 +112,7 @@ class NetworkSui(nn.Module):
             
             labels[i][(y[i])-1] = 1
             i += 1
-        #print(np.eye(num_classes, dtype='float64'))
-        #return #np.eye(num_classes, dtype='float64')[y]
+
         return labels
         
 #extract and process gameStates files (to data and labels) returns dataloader object
@@ -127,33 +126,39 @@ class NetworkSui(nn.Module):
 
         data = np.zeros(shape=(data_array.shape[0], 663))
         labels = np.zeros(shape=(data_array.shape[0], 1))
+        
 
         i = 0
         for row in data_array:
-            data[i] = np.copy(data_array[i][:-1])           #if you want to speed this up we might just refer without copy
+            data[i] = np.copy(data_array[i][:-1])           
             labels[i] = np.copy(data_array[i][-1])
             i += 1
 
-        data = transform(data)
-        print(data)
-        #tmp_labels = NetworkSui.to_categorical(labels, 4)
-
-        labels = NetworkSui.to_categorical(labels, 4)
         
+        data = transform(data)
+
+
+        labels = NetworkSui.to_categorical(labels, 4)        
         labels = transform(labels)
 
-
+        data = torch.squeeze(data, dim=0)
+        labels = torch.squeeze(labels, dim = 0)
+        
+        #print(data.shape)
+        
         dataset = TensorDataset(data, labels)
-        data = DataLoader(dataset, batch_size=64)
+        train_set, val_set = torch.utils.data.random_split(dataset, [180000,20000])
+        data = DataLoader(train_set, batch_size=64)
+        test_data = DataLoader(val_set, batch_size=64)
 
-        return data
+        return data, test_data
     
     
-    def iterate_epochs(model, epochs, train_dataloader, optimizer):
+    def iterate_epochs(model, epochs, train_dataloader, val_dataloader, optimizer):
         for t in range(epochs):
             print(f"Epoch {t+1}\n-------------------------------")
             NetworkSui.train_model(model, train_dataloader, optimizer)
-            NetworkSui.test(model, train_dataloader)
+            NetworkSui.test(model, val_dataloader)
             print("Done!")
     
     def save_model(model):
@@ -167,11 +172,13 @@ class NetworkSui(nn.Module):
         
 #for testing, might be removed entirely later        
 if __name__ == "__main__":
-    data = NetworkSui.extract_states()
+    data, test_data = NetworkSui.extract_states()
+    print(len(data))
+
     model = NetworkSui().to(device)
     model.double()
     #optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001, eps=1e-08, weight_decay=0, amsgrad=False)
 
-    NetworkSui.iterate_epochs(model, 100, data, optimizer)
+    NetworkSui.iterate_epochs(model, 25, data, test_data, optimizer)
     NetworkSui.save_model(model)
