@@ -13,6 +13,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import datasets
+from torch.utils.data import TensorDataset
 from torchvision import transforms
 from torchvision.transforms import ToTensor, Lambda, Compose
 import process_pickle_to_np_array as pitonp
@@ -31,6 +32,9 @@ import h5py
     
 device = "cuda" if torch.cuda.is_available() else "cpu"
 loss_fn = nn.CrossEntropyLoss()
+#loss_fn = torch.nn.MSELoss
+#loss_fn = nn.KLDivLoss()
+
 transform = transforms.Compose([transforms.ToTensor()])
 
 # TODO supervised learning NN with outputs - WIN/LOSS inputs -> vector of numbers from gameSerialize
@@ -38,44 +42,51 @@ class NetworkSui(nn.Module):
     
     def __init__(self):
         super(NetworkSui, self).__init__()
-        self.flatten = nn.Flatten()
+        #self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
             nn.Linear(663, 512),
+            nn.ReLU(),
+            nn.Linear(512, 256),
             nn.ReLU(),
             nn.Linear(256, 128),
             nn.ReLU(),
             nn.Linear(128, 64),
             nn.ReLU(),
             nn.Linear(64, 4),
-            nn.Softmax(dim=1)
+            nn.Softmax(dim=2)
         )
         
     def forward(self, x):
-        x = self.flatten(x)
+        #x = self.flatten(x)
         logits = self.linear_relu_stack(x)
         return logits
 
 
-    def train_model(model, dataloader):
+    def train_model(model, dataloader, optimizer):
         model.train()
         size = len(dataloader.dataset)
         
-        for batch, (X, y) in enumerate(dataloader, 0):
+        for batch, (X, y) in enumerate(dataloader):
+            #print(X.size())
+            #print(y.size())
             X, y = X.to(device), y.to(device)
             
             pred = model(X)
-            loss = nn.CrossEntropyLoss(pred, y)
+            loss = loss_fn(pred, y)
             
-            nn.optimizer.zero_grad()
+            print(pred)
+            print(y)
+            
+            optimizer.zero_grad()
             loss.backward()
-            nn.optimizer.step()
+            optimizer.step()
             
         if batch % 100 == 0:
             loss, current = loss.item(), batch * len(X)
             print(f"loss: {loss:>7f}  [{current:>5d}/{size:>5d}]")
      
         
-    def test(dataloader, model, loss_fn):
+    def test(model, dataloader):
         size = len(dataloader.dataset)
         num_batches = len(dataloader)
         model.eval()
@@ -89,23 +100,65 @@ class NetworkSui(nn.Module):
         test_loss /= num_batches
         correct /= size
         print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+      
+# 1-hot encodes a tensor        
+    def to_categorical(y, num_classes):
+        y = y.astype(int)
         
-#extract and process gameStates files (to inputs and outputs)
+        labels = np.zeros(shape=(y.shape[0], num_classes))
+
+        i = 0
+        for row in y:
+            
+            labels[i][(y[i])-1] = 1
+            i += 1
+        #print(np.eye(num_classes, dtype='float64'))
+        #return #np.eye(num_classes, dtype='float64')[y]
+        return labels
+        
+#extract and process gameStates files (to data and labels) returns dataloader object
     def extract_states():
         
-        h5f = h5py.File('processed667files.h5','r')
+        h5f = h5py.File('UniformDataset200K.h5','r')
 
         data_array = h5f['data'][:]
         h5f.close()
 
-        data = transform(data_array)
-        data = DataLoader(data, batch_size=64)
+
+        data = np.zeros(shape=(data_array.shape[0], 663))
+        labels = np.zeros(shape=(data_array.shape[0], 1))
+
+        i = 0
+        for row in data_array:
+            data[i] = np.copy(data_array[i][:-1])           #if you want to speed this up we might just refer without copy
+            labels[i] = np.copy(data_array[i][-1])
+            i += 1
+
+        data = transform(data)
+        print(data)
+        #tmp_labels = NetworkSui.to_categorical(labels, 4)
+
+        labels = NetworkSui.to_categorical(labels, 4)
+        
+        labels = transform(labels)
+
+
+        dataset = TensorDataset(data, labels)
+        data = DataLoader(dataset, batch_size=64)
 
         return data
     
+    
+    def iterate_epochs(model, epochs, train_dataloader, optimizer):
+        for t in range(epochs):
+            print(f"Epoch {t+1}\n-------------------------------")
+            NetworkSui.train_model(model, train_dataloader, optimizer)
+            NetworkSui.test(model, train_dataloader)
+            print("Done!")
+    
     def save_model(model):
         torch.save(model.state_dict(), "model.pth")             #change dir TODO
-        print("Modal has been saved as model.pth")
+        print("Model has been saved as model.pth")
 
 
     def load_model():
@@ -116,6 +169,9 @@ class NetworkSui(nn.Module):
 if __name__ == "__main__":
     data = NetworkSui.extract_states()
     model = NetworkSui().to(device)
+    model.double()
+    #optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, eps=1e-08, weight_decay=0, amsgrad=False)
 
-    NetworkSui.train_model(model, data)
+    NetworkSui.iterate_epochs(model, 100, data, optimizer)
     NetworkSui.save_model(model)
