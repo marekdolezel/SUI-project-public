@@ -11,8 +11,11 @@ def helper_plot_matrix_M(M):
     plt.imshow(M, interpolation='nearest')
     plt.show()
 
+def serialize_game_stateNoTraslation(board):
+    M, o, d = _serialize_game_state(board, None, None, False)
+    return _game_state_to_vector(M, o, d)
 def serialize_game_state(board, players, globalPlayersDict):
-    M,o,d = _serialize_game_state(board, players, globalPlayersDict)
+    M,o,d = _serialize_game_state(board, players, globalPlayersDict, True)
     return _game_state_to_vector(M,o,d)
 
 def serialize_game_state_fast(board, players, globalPlayersDict):
@@ -44,7 +47,7 @@ def serialize_game_state_fast(board, players, globalPlayersDict):
     return gameStateVector
 
 
-def _serialize_game_state(board, players, globalPlayersDict):
+def _serialize_game_state(board, players, globalPlayersDict, translation):
     bSize = 34
     adjacencyMatrix = np.zeros((bSize, bSize))
     ownerShipVector = np.zeros((bSize))
@@ -55,8 +58,9 @@ def _serialize_game_state(board, players, globalPlayersDict):
         owner_name = area.owner_name
         areaIndex = area.name - 1
 
-        new_owner_name = globalPlayersDict[players[owner_name]]
-        ownerShipVector[areaIndex] = new_owner_name
+        if translation == True:
+            new_owner_name = globalPlayersDict[players[owner_name]]
+            ownerShipVector[areaIndex] = new_owner_name
         diceVector[areaIndex] = area.dice
 
         neighbours = area.get_adjacent_areas()

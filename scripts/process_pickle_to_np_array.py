@@ -4,7 +4,7 @@ from multiprocessing import Process, cpu_count
 import os,sys
 import numpy as np
 import h5py
-from scripts.gameSerialize import serialize_game_state, save_game_state_vector_to_file, serialize_game_state_fast
+from scripts.gameSerialize import serialize_game_state, serialize_game_stateNoTraslation
 # Pickle file format:
 # containst tuple of objects (players, arrOfBoards),
 #   where 'players' object is a dictionary mapping player_name to player_nickname
@@ -37,6 +37,7 @@ def compute_winner(lastBoard):
             pass
         else:
             return -1
+        print("winner is ",winner)
         assert (type(winner) == int)
     return winner
 
@@ -54,19 +55,20 @@ def process_pickles(files_to_process, rootdir):
             tuplePlayersArrOfBoard = pickle.load(handle)
 
             players, arrOfBoards = tuplePlayersArrOfBoard
-            globalPlayersDict, maxIndex = compute_globalPlayersDict(players, globalPlayersDict, maxIndex)
+            # globalPlayersDict, maxIndex = compute_globalPlayersDict(players, globalPlayersDict, maxIndex)
 
             winner = compute_winner(arrOfBoards[-1])
             if (winner == -1):
                 print("Skipping the file",{file})
                 break
-            winner = globalPlayersDict[players[winner]] # Translate winner to globalIndex
+            # "globalIndexes" were pretty bad idea afterall :-(
+            # winner = globalPlayersDict[players[winner]] # Translate winner to globalIndex
 
             # gameStateVectorsArray = serialize_game_state(arrOfBoards[0], players, globalPlayersDict)
             # gameStateVectorsArray = np.append(gameStateVectorsArray, winner) # add winner to the vector
             for board in arrOfBoards:
                 # gameStateVector = []
-                gameStateVector = serialize_game_state(board, players, globalPlayersDict)
+                gameStateVector = serialize_game_stateNoTraslation(board)
                 # gameStateVector = np.array(gameStateVector)
                 # a = serialize_game_state(board, players, globalPlayersDict)
                 # if not np.array_equal(a, gameStateVector):
