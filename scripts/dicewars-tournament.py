@@ -46,7 +46,7 @@ PLAYING_AIs = [
     'kb.sdc_pre_at',
     'kb.stei_dt',
     'kb.stei_adt',
-    'kb.xlogin99',
+    'kb.xdolez67',
 ]
 UNIVERSAL_SEED = 42
 
