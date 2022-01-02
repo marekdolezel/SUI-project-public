@@ -81,6 +81,8 @@ Uzly na listovej úrovni sú ohodnotené a výsledkom je štvorica (p1, p2, p3, 
 
 \section{Implementácia prehľadávania}
 
+Implementácia byla provedena podle článku \cite{expecti}.
+
 \subsection{Expandovanie stavu}
 Expandovanie uzlu hráča vykoná funkcia \texttt{possible\_moves(board, player)}, ktorá pre aktuálny stav hracej dosky (\texttt{board}) a hráča (\texttt{player}) určí nasledujúce možné ťahy. Možné ťahy sa počítajú podobne ako v botovi STEI. Množina všetkých možných ťahov je ohraničená len na také, ktoré spĺňajú aspoň jedno z nasledujúcich kritérií:
 \begin{itemize}
@@ -141,5 +143,7 @@ Takto zpracovaný soubor je poté vstupem pro skript \texttt{./scripts/network.p
 
 \section{Záver}
 
+\bibliographystyle{unsrt} % We choose the "plain" reference style
+\bibliography{bib.bib} % Entries are in the refs.bib file
 
 \end{document}
