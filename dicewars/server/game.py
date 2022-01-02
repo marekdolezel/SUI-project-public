@@ -10,7 +10,6 @@ from .player import Player
 from datetime import datetime
 
 from .summary import GameSummary
-from scripts.gameSerialize import serialize_game_state, save_game_state_vector_to_file
 
 class Game:
     """Instance of the game
