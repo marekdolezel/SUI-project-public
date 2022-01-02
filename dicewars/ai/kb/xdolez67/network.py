@@ -39,20 +39,16 @@ transform = transforms.Compose([transforms.ToTensor()])
 
 # TODO supervised learning NN with outputs - WIN/LOSS inputs -> vector of numbers from gameSerialize
 class NetworkSui(nn.Module):
-    
-    def __init__(self):
-        super(NetworkSui, self).__init__()
-        #self.flatten = nn.Flatten()
+    def init(self):
+        super(NetworkSui, self).init()
         self.linear_relu_stack = nn.Sequential(
-            nn.Linear(663, 512),
+            nn.Linear(663, 256),
             nn.ReLU(),
-            nn.Linear(512, 256),
+            nn.Linear(256, 128),
             nn.ReLU(),
-            #nn.Linear(256, 128),
-            #nn.ReLU(),
-            nn.Linear(256, 64),
+            nn.Linear(128, 32),
             nn.ReLU(),
-            nn.Linear(64, 4),
+            nn.Linear(32, 4),
             nn.Softmax(dim=1)
         )
         

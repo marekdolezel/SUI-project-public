@@ -6,16 +6,34 @@ from dicewars.client.ai_driver import BattleCommand
 #AI
 import torch
 from torch import nn
-#from dicewars.ai.kb.xdolez67.network import NetworkSui()
-# from dicewars.ai.kb.xdolez67.gameSerialize import serialize_game_stateNoTraslation
-import sys
+# from dicewars.ai.kb.xdolez67.network import *
+from dicewars.ai.kb.xdolez67.gameSerialize import serialize_game_stateNoTraslation
+import sys,os
+
+
+class NetworkSui(nn.Module):
+
+    def init(self):
+        super(NetworkSui, self).init()
+        self.linear_relu_stack = nn.Sequential(
+            nn.Linear(663, 256),
+            nn.ReLU(),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, 32),
+            nn.ReLU(),
+            nn.Linear(32, 4),
+            nn.Softmax(dim=1)
+        )
+
 
 class DepthFirstSearch:
     def __init__(self, players_order):
         self.player_order = players_order
         self.max_move_depth = 1
-        self.ai_model = nn.Module
-        self.ai_model.load_state_dict(torch.load("model.pth"))
+        self.ai_model = NetworkSui()
+        # self.model_path = os.path.join(os.path.dirname(__file__), "model.pth")
+        # self.ai_model.load_state_dict(torch.load(self.model_path))
 
     def max_n(self, board, move_depth, player_depth, player):
         self.max_move_depth = move_depth
@@ -105,5 +123,6 @@ class DepthFirstSearch:
 
     def evaluate_ai(self, board):
         gameVector = serialize_game_stateNoTraslation(board)
-        value = model(gameVector)
+        self.ai_model.eval()
+        value = self.ai_model(gameVector)
         return value

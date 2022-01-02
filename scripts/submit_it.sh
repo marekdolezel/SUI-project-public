@@ -15,5 +15,5 @@ cp ./scripts/extract_subset_fromH5.py $SUPP_DIR
 cp ./doc/dokumentace.pdf $SUBMIT_DIR/xdolez67.pdf
 
 cd $SUBMIT_DIR
-zip -r $LEADER *
+zip -r $LEADER * -x .DS_Store
 cp  $LEADER.zip ../
