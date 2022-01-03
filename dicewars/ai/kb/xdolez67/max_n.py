@@ -32,8 +32,8 @@ class DepthFirstSearch:
         self.player_order = players_order
         self.max_move_depth = 1
         self.ai_model = NetworkSui()
-        # self.model_path = os.path.join(os.path.dirname(__file__), "model.pth")
-        # self.ai_model.load_state_dict(torch.load(self.model_path))
+        self.model_path = os.path.join(os.path.dirname(__file__), "model.pth")
+        self.ai_model.load_state_dict(torch.load(self.model_path), strict=False)
 
     def max_n(self, board, move_depth, player_depth, player):
         self.max_move_depth = move_depth
